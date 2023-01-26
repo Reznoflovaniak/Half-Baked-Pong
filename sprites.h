@@ -1,5 +1,5 @@
 #define PLAYER_WIDTH 5
-#define PLAYER_HEIGHT 60
+#define PLAYER_HEIGHT 70
 #include <stdlib.h>
 #include <stdio.h>
 #include <SDL2/SDL.h>
@@ -35,8 +35,9 @@ void draw_circle(SDL_Renderer *renderer, float x, float y, float radius, SDL_Col
 struct circle
 {
     int r;
-    int x;
-    int y;
-    int angle;
-    int velocity;
+    float x;
+    float y;
+    float angle;
+    float velocity;
+    char direction;
 };

@@ -3,87 +3,87 @@
 #define SCREEN_HEIGHT 420
 #define MAX_ANGLE 170
 
+int check_ForDirection(struct circle sprite)
+{
+    if (sprite.direction == 'u')
+        return -sprite.angle;
+    else
+        return sprite.angle;
+}
 int betweenRandom(float low, float high)
 {
     return ((float)rand() / high) * low;
 }
-void check_ballPosn(struct circle *sprite, PADDLE paddle1, PADDLE paddle2)
+void check_ballPosn(struct circle *sprite, PADDLE *paddle1)
 {
-    /*  Position            Angle
-        y to y + 10         5 to 30
-        y + 11 to y + 20    30 to 60
-        y + 21 to y + 30    60 to 90
-        y + 31 to y + 40    90 to 120
-        y + 41 to y + 50    120 to 150
-        y + 51 to y + 60    150 to 180
-
-        Use the pythagorean theorum to calculate the distance between the current position
-        of the ball and the end of the screen so you know how much to increment the ball's position
-        by.
-    */
-
     sprite->y += tan(sprite->angle);
     sprite->x += sprite->velocity;
     srand(time(NULL));
-
-    if (sprite->x == paddle1.paddle.x && (sprite->y <= paddle1.paddle.y + paddle1.paddle.h && sprite->y > paddle1.paddle.y))
+    if ((sprite->x <= paddle1->paddle.x + PLAYER_WIDTH && sprite->x >= paddle1->paddle.x) && (sprite->y >= paddle1->paddle.y && sprite->y <= paddle1->paddle.y + PLAYER_HEIGHT))
     {
-
-        if (sprite->y > paddle1.paddle.y && sprite->y < paddle1.paddle.y + paddle1.paddle.h / 7)
+        if (sprite->y <= paddle1->paddle.y + 10 || sprite->y > paddle1->paddle.y + 60)
         {
-            sprite->angle = abs(betweenRandom(tan(78), tan(79)));
-            printf("part 1\n");
+            sprite->angle = 80;
+            sprite->angle = check_ForDirection(*sprite);
         }
-        if (sprite->y > paddle1.paddle.y + paddle1.paddle.h / 7 && sprite->y <= paddle1.paddle.y + paddle1.paddle.h * (2 / 7))
+        if ((sprite->y <= paddle1->paddle.y + 20 && sprite->y > paddle1->paddle.y + 10) || (sprite->y > paddle1->paddle.y + 50 && sprite->y < paddle1->paddle.y + 60))
         {
-            sprite->angle = abs(betweenRandom(tan(71), tan(77)));
-            printf("part 2\n");
-        }
-        else if (sprite->y > paddle1.paddle.y + paddle1.paddle.h * (2 / 7) && sprite->y <= paddle1.paddle.y + paddle1.paddle.h * (3 / 7))
-        {
-            sprite->angle = abs(betweenRandom(tan(60), tan(70)));
-            printf("part 3\n");
-        }
-        else if (sprite->y > paddle1.paddle.y + paddle1.paddle.h * (3 / 7) && sprite->y <= paddle1.paddle.y + paddle1.paddle.h * (4 / 7))
-        {
-            if (sprite->angle < 0)
-                sprite->angle = abs(betweenRandom(tan(0), tan(55)));
-            if (sprite->angle > 0)
-                sprite->angle = -abs(betweenRandom(tan(0), tan(55)));
-            printf("Part 4\n");
-        }
-        else if (sprite->y > paddle1.paddle.y + paddle1.paddle.h * (4 / 7) && sprite->y <= paddle1.paddle.y + paddle1.paddle.h * (5 / 7))
-        {
-            sprite->angle = -abs(betweenRandom(tan(60), tan(70)));
-            printf("part 5\n");
-        }
-        else if (sprite->y > paddle1.paddle.y + paddle1.paddle.h * (5 / 7) && sprite->y <= paddle1.paddle.y + paddle1.paddle.h * (6 / 7))
-        {
-            sprite->angle = -abs(betweenRandom(tan(71), tan(77)));
-            printf("part 6\n");
-        }
-        else if (sprite->y > paddle1.paddle.y + paddle1.paddle.h * (6 / 7) && sprite->y <= paddle1.paddle.y + paddle1.paddle.h)
-        {
-            sprite->angle = -abs(betweenRandom(tan(78), tan(79)));
-            printf("Final part\n");
+            sprite->angle = 73;
+            sprite->angle = check_ForDirection(*sprite);
         }
         sprite->velocity *= -1;
-    }
-    if (sprite->y < 0)
-    {
-        sprite->angle *= -1;
-        sprite->y = 5;
     }
     if (sprite->y + sprite->r * 2 >= SCREEN_HEIGHT)
     {
         sprite->angle *= -1;
-        sprite->y = SCREEN_HEIGHT - sprite->r * 2;
+        sprite->direction = 'u';
     }
-    // printf("Paddle X: %d\t\tPaddle Y: %d\n\nBall X: %d\t\tBall Y: %d\n\nDirection: %d\n\n", paddle1.paddle.x, paddle1.paddle.y, sprite->x, sprite->y, *ball_direction);
+    if (sprite->y <= 0)
+    {
+        sprite->angle *= -1;
+        sprite->direction = 'd';
+    }
+    if (sprite->x <= 0 || sprite->x >= SCREEN_WIDTH)
+    {
+        SDL_Delay(2000);
+        sprite->x = SCREEN_WIDTH / 2;
+        sprite->y = paddle1->paddle.y = SCREEN_HEIGHT / 2;
+        sprite->angle = 1;
+    }
+}
+void algorithm(struct circle *sprite, PADDLE *paddle1)
+{
+    if (sprite->y > paddle1->paddle.y + PLAYER_HEIGHT / 2)
+    {
+        paddle1->velocity = abs(paddle1->velocity);
+    }
+    else if (sprite->y < paddle1->paddle.y + PLAYER_HEIGHT / 2)
+    {
+        paddle1->velocity = -abs(paddle1->velocity);
+    }
+    if ((sprite->x <= paddle1->paddle.x + PLAYER_WIDTH && sprite->x >= paddle1->paddle.x) && (sprite->y >= paddle1->paddle.y && sprite->y <= paddle1->paddle.y + PLAYER_HEIGHT))
+    {
+        if (sprite->y <= paddle1->paddle.y + 10 || sprite->y > paddle1->paddle.y + 60)
+        {
+            sprite->angle = 80;
+            sprite->angle = check_ForDirection(*sprite);
+        }
+        if ((sprite->y <= paddle1->paddle.y + 20 && sprite->y > paddle1->paddle.y + 10) || (sprite->y > paddle1->paddle.y + 50 && sprite->y < paddle1->paddle.y + 60))
+        {
+            sprite->angle = 73;
+            sprite->angle = check_ForDirection(*sprite);
+        }
+        if ((sprite->y <= paddle1->paddle.y + 30 && sprite->y > paddle1->paddle.y + 10) || (sprite->y > paddle1->paddle.y + 40 && sprite->y < paddle1->paddle.y + 60))
+        {
+            sprite->angle = 60;
+            sprite->angle = check_ForDirection(*sprite);
+        }
+        sprite->velocity *= -1;
+    }
 }
 int main(int argc, char **argv)
 {
-    system("cls");
+the_start:
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window *window;
     SDL_Surface *windowSurface = NULL;
@@ -94,7 +94,9 @@ int main(int argc, char **argv)
     PADDLE player1;
     PADDLE player2;
 
+the_initialization:
     player1.velocity = 0;
+    player2.velocity = 8;
     player1.paddle.x = 50;
     player1.paddle.y = player2.paddle.y = SCREEN_HEIGHT / 2 - PLAYER_HEIGHT;
     player2.paddle.x = 680 - 50;
@@ -109,7 +111,7 @@ int main(int argc, char **argv)
     pong_ball.y = 420 / 2 - pong_ball.r;
     pong_ball.angle = 1;
     bool running = true;
-    pong_ball.velocity = -3;
+    pong_ball.velocity = -4;
     while (running)
     {
         SDL_Delay(1000 / 60);
@@ -149,7 +151,14 @@ int main(int argc, char **argv)
                 case SDLK_DOWN:
                     if (player1.velocity > 0)
                         player1.velocity = 0;
-
+                    break;
+                case SDLK_ESCAPE:
+                    SDL_DestroyWindow(window);
+                    window = NULL;
+                    SDL_FreeSurface(currentImage);
+                    SDL_FreeSurface(windowSurface);
+                    SDL_Quit();
+                    return 0;
                     break;
                 default:
                     break;
@@ -158,7 +167,8 @@ int main(int argc, char **argv)
             }
         }
 
-        check_ballPosn(&pong_ball, player1, player2);
+        check_ballPosn(&pong_ball, &player1);
+        algorithm(&pong_ball, &player2);
         SDL_UpdateWindowSurface(window);
         SDL_RenderClear(renderer);
         SDL_SetRenderDrawColor(renderer, player1.player_color.r, player1.player_color.g, player1.player_color.b, player1.player_color.a);
@@ -171,6 +181,7 @@ int main(int argc, char **argv)
         SDL_RenderPresent(renderer);
 
         player1.paddle.y += player1.velocity;
+        player2.paddle.y += player2.velocity;
     }
     SDL_DestroyWindow(window);
     window = NULL;
