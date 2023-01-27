@@ -2,7 +2,7 @@
 #define SCREEN_WIDTH 680
 #define SCREEN_HEIGHT 420
 #define MAX_ANGLE 170
-
+int win_counter = 0;
 int check_ForDirection(struct circle sprite)
 {
     if (sprite.direction == 'u')
@@ -14,7 +14,7 @@ int betweenRandom(float low, float high)
 {
     return ((float)rand() / high) * low;
 }
-void check_ballPosn(struct circle *sprite, PADDLE *paddle1)
+void check_ballPosn(struct circle *sprite, PADDLE *paddle1, SDL_Renderer **renderer)
 {
     sprite->y += tan(sprite->angle);
     sprite->x += sprite->velocity;
@@ -31,6 +31,12 @@ void check_ballPosn(struct circle *sprite, PADDLE *paddle1)
             sprite->angle = 73;
             sprite->angle = check_ForDirection(*sprite);
         }
+        if ((sprite->y <= paddle1->paddle.y + 30 && sprite->y > paddle1->paddle.y + 10) || (sprite->y > paddle1->paddle.y + 40 && sprite->y < paddle1->paddle.y + 60))
+        {
+            sprite->angle = 60;
+            sprite->angle = check_ForDirection(*sprite);
+        }
+
         sprite->velocity *= -1;
     }
     if (sprite->y + sprite->r * 2 >= SCREEN_HEIGHT)
@@ -43,15 +49,23 @@ void check_ballPosn(struct circle *sprite, PADDLE *paddle1)
         sprite->angle *= -1;
         sprite->direction = 'd';
     }
-    if (sprite->x <= 0 || sprite->x >= SCREEN_WIDTH)
+    if (sprite->x <= 0)
     {
         SDL_Delay(2000);
         sprite->x = SCREEN_WIDTH / 2;
         sprite->y = paddle1->paddle.y = SCREEN_HEIGHT / 2;
         sprite->angle = 1;
     }
+    if (sprite->x >= SCREEN_WIDTH)
+    {
+        SDL_Delay(2000);
+        sprite->x = SCREEN_WIDTH / 2;
+        sprite->y = paddle1->paddle.y = SCREEN_HEIGHT / 2;
+        sprite->angle = 1;
+        win_counter = 1;
+    }
 }
-void algorithm(struct circle *sprite, PADDLE *paddle1)
+void algorithm(struct circle *sprite, PADDLE *paddle1, SDL_Renderer **renderer)
 {
     if (sprite->y > paddle1->paddle.y + PLAYER_HEIGHT / 2)
     {
@@ -111,7 +125,7 @@ the_initialization:
     pong_ball.y = 420 / 2 - pong_ball.r;
     pong_ball.angle = 1;
     bool running = true;
-    pong_ball.velocity = -4;
+    pong_ball.velocity = -9;
     while (running)
     {
         SDL_Delay(1000 / 60);
@@ -127,11 +141,11 @@ the_initialization:
                 switch (event.key.keysym.sym)
                 {
                 case SDLK_UP:
-                    player1.velocity = -2;
+                    player1.velocity = -3;
                     break;
                 case SDLK_DOWN:
 
-                    player1.velocity = 2;
+                    player1.velocity = 3;
                     break;
 
                 case SDLK_RETURN:
@@ -167,13 +181,14 @@ the_initialization:
             }
         }
 
-        check_ballPosn(&pong_ball, &player1);
-        algorithm(&pong_ball, &player2);
+        check_ballPosn(&pong_ball, &player1, &renderer);
+        algorithm(&pong_ball, &player2, &renderer);
         SDL_UpdateWindowSurface(window);
         SDL_RenderClear(renderer);
         SDL_SetRenderDrawColor(renderer, player1.player_color.r, player1.player_color.g, player1.player_color.b, player1.player_color.a);
         SDL_RenderFillRect(renderer, &player1.paddle);
         SDL_RenderDrawRect(renderer, &player1.paddle);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &player2.paddle);
         SDL_RenderDrawRect(renderer, &player2.paddle);
         draw_circle(renderer, pong_ball.x, pong_ball.y, pong_ball.r, player1.player_color);
@@ -182,6 +197,13 @@ the_initialization:
 
         player1.paddle.y += player1.velocity;
         player2.paddle.y += player2.velocity;
+        if (win_counter == 1)
+        {
+            player1.player_color.r = 255;
+            player1.player_color.g = 215;
+            player1.player_color.b = 0;
+            win_counter = 0;
+        }
     }
     SDL_DestroyWindow(window);
     window = NULL;
